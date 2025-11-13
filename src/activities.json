@@ -84,10 +84,6 @@
     "description": "Learn practical coding and collaboration skills through GitHub. Part of the GitHub Certifications program to help with college applications.",
     "schedule": "Wednesdays, 3:30 PM - 5:00 PM",
     "max_participants": 25,
-    "participants": [
-      "student1@mergington.edu",
-      "student2@mergington.edu",
-      "student3@mergington.edu"
-    ]
+    "participants": []
   }
 }
