@@ -1,4 +1,4 @@
-name: 🚀 Pilot - Sync ADO Query to GitHub
+name: 🚀 Pilot - Sync ADO Query to GitHub (传统方案)
 
 on:
   workflow_dispatch:
