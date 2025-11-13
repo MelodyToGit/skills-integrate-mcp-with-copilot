@@ -29,7 +29,7 @@ jobs:
             
             async function syncQueryWorkItems() {
               const adoProject = 'EMR-DigMod';
-              const githubRepo = 'MelodyToGit/skills-expand-your-team-with-copilot';
+              const githubRepo = 'MelodyToGit/skills-integrate-mcp-with-copilot';
               const [owner, repo] = githubRepo.split('/');
               
               console.log('📋 Using optimized WIQL query...');
