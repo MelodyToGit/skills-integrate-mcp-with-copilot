@@ -1,194 +1,194 @@
-# name: 🚀 Pilot - Sync ADO Query to GitHub (传统方案)
+name: 🚀 Pilot - Sync ADO Query to GitHub (传统方案)
 
-# on:
-#   workflow_dispatch:
-#   schedule:
-#     - cron: '0 */4 * * *'
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 */4 * * *'
 
-# # 添加必要的权限
-# permissions:
-#   contents: write
-#   issues: write
-#   pull-requests: write
+# 添加必要的权限
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
 
-# jobs:
-#   sync-pilot-query:
-#     runs-on: ubuntu-latest
-#     steps:
-#       - name: Checkout repository
-#         uses: actions/checkout@v4
+jobs:
+  sync-pilot-query:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-#       - name: Sync ADO Query Items to Pilot Repo
-#         uses: actions/github-script@v6
-#         env:
-#           ADO_TOKEN: ${{ secrets.ADO_PAT }}
-#           ADO_ORG: ${{ secrets.ADO_ORG }}
-#         with:
-#           script: |
-#             console.log('🚀 Starting Pilot Sync from ADO Query...');
+      - name: Sync ADO Query Items to Pilot Repo
+        uses: actions/github-script@v6
+        env:
+          ADO_TOKEN: ${{ secrets.ADO_PAT }}
+          ADO_ORG: ${{ secrets.ADO_ORG }}
+        with:
+          script: |
+            console.log('🚀 Starting Pilot Sync from ADO Query...');
             
-#             async function syncQueryWorkItems() {
-#               const adoProject = 'EMR-DigMod';
-#               const githubRepo = 'MelodyToGit/skills-integrate-mcp-with-copilot';
-#               const [owner, repo] = githubRepo.split('/');
+            async function syncQueryWorkItems() {
+              const adoProject = 'EMR-DigMod';
+              const githubRepo = 'MelodyToGit/skills-integrate-mcp-with-copilot';
+              const [owner, repo] = githubRepo.split('/');
               
-#               console.log('📋 Using optimized WIQL query...');
-#               await tryOptimizedQuery(adoProject, owner, repo);
-#             }
+              console.log('📋 Using optimized WIQL query...');
+              await tryOptimizedQuery(adoProject, owner, repo);
+            }
 
-#             async function tryOptimizedQuery(adoProject, owner, repo) {
-#               // 优化查询：限制返回数量和时间范围
-#               const wiqlQueries = [
-#                 {
-#                   name: "Recent Active Bugs",
-#                   query: "SELECT [System.Id], [System.Title], [System.WorkItemType], [System.State] FROM WorkItems WHERE [System.WorkItemType] = 'Bug' AND [System.State] = 'Active' AND [System.ChangedDate] >= @today - 7 ORDER BY [System.ChangedDate] DESC"
-#                 }
-#               ];
+            async function tryOptimizedQuery(adoProject, owner, repo) {
+              // 优化查询：限制返回数量和时间范围
+              const wiqlQueries = [
+                {
+                  name: "Recent Active Bugs",
+                  query: "SELECT [System.Id], [System.Title], [System.WorkItemType], [System.State] FROM WorkItems WHERE [System.WorkItemType] = 'Bug' AND [System.State] = 'Active' AND [System.ChangedDate] >= @today - 7 ORDER BY [System.ChangedDate] DESC"
+                }
+              ];
 
-#               for (const queryConfig of wiqlQueries) {
-#                 console.log('🔄 Trying query: ' + queryConfig.name);
+              for (const queryConfig of wiqlQueries) {
+                console.log('🔄 Trying query: ' + queryConfig.name);
                 
-#                 const success = await executeQuery(queryConfig.query, adoProject, owner, repo);
-#                 if (success) {
-#                   break; // 如果有一个查询成功，就停止尝试
-#                 }
-#               }
-#             }
+                const success = await executeQuery(queryConfig.query, adoProject, owner, repo);
+                if (success) {
+                  break; // 如果有一个查询成功，就停止尝试
+                }
+              }
+            }
 
-#             async function executeQuery(wiql, adoProject, owner, repo) {
-#               try {
-#                 const queryResponse = await fetch(
-#                   'https://dev.azure.com/' + process.env.ADO_ORG + '/' + adoProject + '/_apis/wit/wiql?api-version=6.0',
-#                   {
-#                     method: 'POST',
-#                     headers: {
-#                       'Content-Type': 'application/json',
-#                       'Authorization': 'Basic ' + Buffer.from(':' + process.env.ADO_TOKEN).toString('base64')
-#                     },
-#                     body: JSON.stringify({ query: wiql })
-#                   }
-#                 );
+            async function executeQuery(wiql, adoProject, owner, repo) {
+              try {
+                const queryResponse = await fetch(
+                  'https://dev.azure.com/' + process.env.ADO_ORG + '/' + adoProject + '/_apis/wit/wiql?api-version=6.0',
+                  {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'Authorization': 'Basic ' + Buffer.from(':' + process.env.ADO_TOKEN).toString('base64')
+                    },
+                    body: JSON.stringify({ query: wiql })
+                  }
+                );
 
-#                 if (!queryResponse.ok) {
-#                   console.log('❌ Query failed: ' + queryResponse.status);
-#                   const errorText = await queryResponse.text();
-#                   console.log('Error: ' + errorText);
-#                   return false;
-#                 }
+                if (!queryResponse.ok) {
+                  console.log('❌ Query failed: ' + queryResponse.status);
+                  const errorText = await queryResponse.text();
+                  console.log('Error: ' + errorText);
+                  return false;
+                }
 
-#                 const queryResult = await queryResponse.json();
-#                 await processQueryResult(queryResult, adoProject, owner, repo);
-#                 return true;
+                const queryResult = await queryResponse.json();
+                await processQueryResult(queryResult, adoProject, owner, repo);
+                return true;
                 
-#               } catch (error) {
-#                 console.log('❌ Query execution error: ' + error.message);
-#                 return false;
-#               }
-#             }
+              } catch (error) {
+                console.log('❌ Query execution error: ' + error.message);
+                return false;
+              }
+            }
 
-#             async function processQueryResult(queryResult, adoProject, owner, repo) {
-#               console.log('✅ Query returned ' + (queryResult.workItems?.length || 0) + ' items');
+            async function processQueryResult(queryResult, adoProject, owner, repo) {
+              console.log('✅ Query returned ' + (queryResult.workItems?.length || 0) + ' items');
               
-#               if (queryResult.workItems && queryResult.workItems.length > 0) {
-#                 // 只同步前2个作为初始测试
-#                 const itemsToSync = queryResult.workItems.slice(0, 2);
-#                 console.log('🔄 Syncing first ' + itemsToSync.length + ' items...');
+              if (queryResult.workItems && queryResult.workItems.length > 0) {
+                // 只同步前2个作为初始测试
+                const itemsToSync = queryResult.workItems.slice(0, 2);
+                console.log('🔄 Syncing first ' + itemsToSync.length + ' items...');
                 
-#                 for (const workItemRef of itemsToSync) {
-#                   await syncWorkItem(workItemRef.id, adoProject, owner, repo);
-#                 }
-#               } else {
-#                 console.log('ℹ️ No work items found in the query');
-#               }
-#             }
+                for (const workItemRef of itemsToSync) {
+                  await syncWorkItem(workItemRef.id, adoProject, owner, repo);
+                }
+              } else {
+                console.log('ℹ️ No work items found in the query');
+              }
+            }
 
-#             async function syncWorkItem(workItemId, adoProject, owner, repo) {
-#               try {
-#                 console.log('📥 Fetching ADO work item: ' + workItemId);
+            async function syncWorkItem(workItemId, adoProject, owner, repo) {
+              try {
+                console.log('📥 Fetching ADO work item: ' + workItemId);
                 
-#                 const workItemResponse = await fetch(
-#                   'https://dev.azure.com/' + process.env.ADO_ORG + '/_apis/wit/workitems/' + workItemId + '?api-version=6.0',
-#                   {
-#                     headers: {
-#                       'Authorization': 'Basic ' + Buffer.from(':' + process.env.ADO_TOKEN).toString('base64')
-#                     }
-#                   }
-#                 );
+                const workItemResponse = await fetch(
+                  'https://dev.azure.com/' + process.env.ADO_ORG + '/_apis/wit/workitems/' + workItemId + '?api-version=6.0',
+                  {
+                    headers: {
+                      'Authorization': 'Basic ' + Buffer.from(':' + process.env.ADO_TOKEN).toString('base64')
+                    }
+                  }
+                );
 
-#                 if (!workItemResponse.ok) {
-#                   console.log('❌ Failed to fetch work item ' + workItemId + ': ' + workItemResponse.status);
-#                   return;
-#                 }
+                if (!workItemResponse.ok) {
+                  console.log('❌ Failed to fetch work item ' + workItemId + ': ' + workItemResponse.status);
+                  return;
+                }
 
-#                 const workItem = await workItemResponse.json();
-#                 await createGitHubIssue(workItem, adoProject, owner, repo);
-#               } catch (error) {
-#                 console.log('❌ Error syncing work item ' + workItemId + ': ' + error.message);
-#               }
-#             }
+                const workItem = await workItemResponse.json();
+                await createGitHubIssue(workItem, adoProject, owner, repo);
+              } catch (error) {
+                console.log('❌ Error syncing work item ' + workItemId + ': ' + error.message);
+              }
+            }
 
-#             async function createGitHubIssue(workItem, adoProject, owner, repo) {
-#               const issueTitle = '[ADO-' + workItem.id + '] ' + workItem.fields['System.Title'];
-#               const labels = ['pilot-sync', 'ado-bug', 'ado-' + workItem.id];
-#               const issueBody = generateIssueBody(workItem, adoProject);
+            async function createGitHubIssue(workItem, adoProject, owner, repo) {
+              const issueTitle = '[ADO-' + workItem.id + '] ' + workItem.fields['System.Title'];
+              const labels = ['pilot-sync', 'ado-bug', 'ado-' + workItem.id];
+              const issueBody = generateIssueBody(workItem, adoProject);
 
-#               try {
-#                 console.log('📝 Creating GitHub issue for ADO-' + workItem.id);
+              try {
+                console.log('📝 Creating GitHub issue for ADO-' + workItem.id);
                 
-#                 // 创建新Issue
-#                 const newIssue = await github.rest.issues.create({
-#                   owner,
-#                   repo,
-#                   title: issueTitle,
-#                   body: issueBody,
-#                   labels: labels
-#                 });
+                // 创建新Issue
+                const newIssue = await github.rest.issues.create({
+                  owner,
+                  repo,
+                  title: issueTitle,
+                  body: issueBody,
+                  labels: labels
+                });
                 
-#                 console.log('✅ Successfully created issue #' + newIssue.data.number + ' for ADO-' + workItem.id);
+                console.log('✅ Successfully created issue #' + newIssue.data.number + ' for ADO-' + workItem.id);
                 
-#                 // 添加初始评论
-#                 await github.rest.issues.createComment({
-#                   owner,
-#                   repo,
-#                   issue_number: newIssue.data.number,
-#                   body: '## 🤖 Copilot Analysis Ready\n\nThis issue has been synced from Azure DevOps and is ready for Copilot analysis.\n\n**ADO Link:** https://dev.azure.com/' + process.env.ADO_ORG + '/' + adoProject + '/_workitems/edit/' + workItem.id
-#                 });
+                // 添加初始评论
+                await github.rest.issues.createComment({
+                  owner,
+                  repo,
+                  issue_number: newIssue.data.number,
+                  body: '## 🤖 Copilot Analysis Ready\n\nThis issue has been synced from Azure DevOps and is ready for Copilot analysis.\n\n**ADO Link:** https://dev.azure.com/' + process.env.ADO_ORG + '/' + adoProject + '/_workitems/edit/' + workItem.id
+                });
                 
-#                 return newIssue.data.number;
+                return newIssue.data.number;
                 
-#               } catch (error) {
-#                 console.log('❌ Error creating GitHub issue: ' + error.message);
-#                 if (error.status === 403) {
-#                   console.log('🔒 Permission denied. Please check GitHub token permissions.');
-#                 }
-#                 return null;
-#               }
-#             }
+              } catch (error) {
+                console.log('❌ Error creating GitHub issue: ' + error.message);
+                if (error.status === 403) {
+                  console.log('🔒 Permission denied. Please check GitHub token permissions.');
+                }
+                return null;
+              }
+            }
 
-#             function generateIssueBody(workItem, adoProject) {
-#               const description = workItem.fields['System.Description'] || 'No description provided.';
-#               const state = workItem.fields['System.State'] || 'New';
-#               const createdDate = new Date(workItem.fields['System.CreatedDate']).toLocaleDateString();
+            function generateIssueBody(workItem, adoProject) {
+              const description = workItem.fields['System.Description'] || 'No description provided.';
+              const state = workItem.fields['System.State'] || 'New';
+              const createdDate = new Date(workItem.fields['System.CreatedDate']).toLocaleDateString();
               
-#               return [
-#                 '### 🐛 Azure DevOps Bug - Pilot Sync',
-#                 '',
-#                 '**ADO ID:** ' + workItem.id,
-#                 '**Type:** ' + workItem.fields['System.WorkItemType'],
-#                 '**State:** ' + state,
-#                 '**Project:** ' + adoProject,
-#                 '**Created:** ' + createdDate,
-#                 '',
-#                 '### Description',
-#                 description,
-#                 '',
-#                 '### 🔗 Links',
-#                 '- [View in Azure DevOps](https://dev.azure.com/' + process.env.ADO_ORG + '/' + adoProject + '/_workitems/edit/' + workItem.id + ')',
-#                 '',
-#                 '---',
-#                 '*🚀 Pilot synchronization from ADO to GitHub for Copilot analysis*'
-#               ].join('\n');
-#             }
+              return [
+                '### 🐛 Azure DevOps Bug - Pilot Sync',
+                '',
+                '**ADO ID:** ' + workItem.id,
+                '**Type:** ' + workItem.fields['System.WorkItemType'],
+                '**State:** ' + state,
+                '**Project:** ' + adoProject,
+                '**Created:** ' + createdDate,
+                '',
+                '### Description',
+                description,
+                '',
+                '### 🔗 Links',
+                '- [View in Azure DevOps](https://dev.azure.com/' + process.env.ADO_ORG + '/' + adoProject + '/_workitems/edit/' + workItem.id + ')',
+                '',
+                '---',
+                '*🚀 Pilot synchronization from ADO to GitHub for Copilot analysis*'
+              ].join('\n');
+            }
 
-#             // 执行同步
-#             await syncQueryWorkItems();
+            // 执行同步
+            await syncQueryWorkItems();
