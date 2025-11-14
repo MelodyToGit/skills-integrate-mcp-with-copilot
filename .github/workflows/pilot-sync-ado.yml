@@ -2,8 +2,8 @@ name: 🚀 Pilot - Sync ADO Query to GitHub (传统方案)
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 */4 * * *'
+  # schedule:
+  #   - cron: '0 */4 * * *'  # 已禁用自动运行
 
 # 添加必要的权限
 permissions:
@@ -135,16 +135,18 @@ jobs:
               try {
                 console.log('📝 Creating GitHub issue for ADO-' + workItem.id);
                 
-                // 创建新Issue
+                // 创建新Issue并分配给Copilot
                 const newIssue = await github.rest.issues.create({
                   owner,
                   repo,
                   title: issueTitle,
                   body: issueBody,
-                  labels: labels
+                  labels: labels,
+                  assignees: ['copilot']
                 });
                 
                 console.log('✅ Successfully created issue #' + newIssue.data.number + ' for ADO-' + workItem.id);
+                console.log('🤖 Issue assigned to Copilot');
                 
                 // 添加初始评论
                 await github.rest.issues.createComment({
@@ -160,6 +162,8 @@ jobs:
                 console.log('❌ Error creating GitHub issue: ' + error.message);
                 if (error.status === 403) {
                   console.log('🔒 Permission denied. Please check GitHub token permissions.');
+                } else if (error.message.includes('copilot')) {
+                  console.log('⚠️ Note: Copilot assignment may not be available for this repository');
                 }
                 return null;
               }
